@@ -1,10 +1,27 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+  sequence();
+}
+
+void sequence()
+{
+  int nbLignes = 9;
+  int nbRotations = 8;
+  int lignes[nbLignes] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int rotations[nbRotations] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+  for (int i = 0; i < nbLignes; i++) {
+
+    if (i < nbRotations) {
+      
+    }
+  }
 }
