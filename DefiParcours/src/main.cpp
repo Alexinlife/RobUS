@@ -13,15 +13,37 @@ void loop()
 
 void sequence()
 {
-  int nbLignes = 9;
-  int nbRotations = 8;
-  int lignes[nbLignes] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  int rotations[nbRotations] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int mouvements[9 /* Nombre de mouvements */][2] = {
+      {1,1},
+      {1,1},
+      {1,1},
+      {1,1},
+      {1,1},
+      {1,1}, 
+      {1,1},
+      {1,1},
+      {1,0}
+    };
 
-  for (int i = 0; i < nbLignes; i++) {
+  for (int i = 0; i < sizeof(mouvements); i++) {
 
-    if (i < nbRotations) {
+    // Valeur de déplacement à la position i
+    if (mouvements[i,0] != 0) {
+
+      if (mouvements[i,0] < 0) {
+
+      } else {
+
+      }
+    }
+    // Valeur de rotation à la position i
+    if (mouvements[i, 1] != 0) {
       
+      if (mouvements[i,1] < 0) {
+
+      } else {
+        
+      }
     }
   }
 }
