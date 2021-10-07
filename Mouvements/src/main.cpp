@@ -8,6 +8,40 @@
    Serial.print("Depart du programme\n");
 
  }
+
+/*
+==========================
+Boucle de controle PID
+==========================
+*/
+ long PID(long PreviousTime,float TargetSpeed)
+ {
+   float pid = 0;
+   float Kp = 0.001;
+   float Ki = 1;
+   float Erreur = 0;
+   float sec = 7000;
+   unsigned int dT = 100;
+   long CurrentTime = millis();
+   unsigned int TimeSample = CurrentTime-PreviousTime;
+
+  if (TimeSample>=dT) //dT est une constante de temps systeme definit plus haut
+  {
+
+    int encodeur_0 = ENCODER_Read(0);
+    int encodeur_1 = ENCODER_Read(1);
+    Erreur = encodeur_0 - encodeur_1;
+    Serial.println(Erreur);
+    pid = (Erreur * Kp) + ((Erreur*Ki)/sec) + TargetSpeed;
+    //Serial.println(pid); 
+    PreviousTime=CurrentTime;
+    MOTOR_SetSpeed(1,pid);
+ 
+  } 
+  return PreviousTime;
+ }
+
+
      void Gauche(int32_t AngleG)
      {
        MOTOR_SetSpeed(0, 0);
@@ -55,32 +89,33 @@
      
      void Avancer(int32_t DistanceA)
      {
-       float speed0 = 0.5;
-       float speed1 = 0.5;
-       MOTOR_SetSpeed(0, speed0);
-       MOTOR_SetSpeed(1, speed1);
+       ENCODER_Reset(0);
+       ENCODER_Reset(1);
+       float PreviousTime = 0;
+       float speed0 = 0;
+       float speed1 = 0.35;
+       
+       /*for(float i = 0; i < speed0; i += 0.01){
+        delay(5);
+        MOTOR_SetSpeed(0, i);
+        MOTOR_SetSpeed(1, i);
+       }*/
+       
+
+
        bool i = true;
-       int timer = 0;
+       
        while(i)
        {
-         timer++;
-         if(timer % 500 == 0)
-         {
-          if(speed0 <.70 || speed1 < .7){
-            speed0 -= .2;
-            speed1 -= .2;
-          }
-          if(ENCODER_Read(0) < ENCODER_Read(1))
-          {
-            speed0 = (ENCODER_Read(1) * speed0) / ENCODER_Read(0);
-            MOTOR_SetSpeed(0, speed0);
-          }
-          if(ENCODER_Read(1) < ENCODER_Read(0))
-          {
-            speed1 = (ENCODER_Read(0) * speed1) / ENCODER_Read(1);
-            MOTOR_SetSpeed(1, speed1);
-          }
+         if(speed0 <= speed1){
+           speed0 += .01;
+           delay(5);
+           MOTOR_SetSpeed(0, speed0);
+           MOTOR_SetSpeed(1, speed0);
          }
+         
+         
+         PreviousTime = PID(PreviousTime, speed0);
         if((ENCODER_Read(0) >= DistanceA) && (ENCODER_Read(1) >= DistanceA))
         {
           MOTOR_SetSpeed(0, 0);
@@ -144,6 +179,10 @@
      }
 
 
+
+     
+
+
  void loop ()
  {
    Serial.print("Loop\n");
@@ -151,38 +190,8 @@
 
    while(1)
    {
-     Avancer(45000);
-     delay(4000);
-/*
-==========================
-Boucle de controle PID
-==========================
-*/
-float Kp = 0.001;
-float Ki = 1;
-float Erreur = 0;
-float sec = 7000;
-unsigned int dT = 100;
+     //Avancer(45000);
+     //delay(5000);
 
- long PID(long PreviousTime,float TargetSpeed)
- {
-  long CurrentTime = millis();
-  unsigned int TimeSample = CurrentTime-PreviousTime;
-
-  if (TimeSample>=dT) //dT est une constante de temps systeme definit plus haut
-  {
-
-    int encodeur_0 = ENCODER_Read(0);
-    int encodeur_1 = ENCODER_Read(1);
-    Erreur = encodeur_0 - encodeur_1;
-    Serial.println(Erreur);
-    pid = (Erreur * Kp) + ((Erreur*Ki)/sec) + TargetSpeed;
-    Serial.println(pid); 
-    PreviousTime=CurrentTime;
-    MOTOR_SetSpeed(1,pid);
- 
-  } 
-  return PreviousTime;
- }
    }
  }

@@ -3,14 +3,50 @@
 
 void setup()
 {
+  Serial.begin(9600);
+  BoardInit();
 }
 
-void InverserTableau() {
+void InverserTableau()
+{
+}
 
+/*
+==========================
+Boucle de controle PID
+==========================
+*/
+long PID(long PreviousTime, float TargetSpeed)
+{
+  float pid = 0;
+  float Kp = 0.001;
+  float Ki = 1;
+  float Erreur = 0;
+  float sec = 7000;
+  unsigned int dT = 100;
+  long CurrentTime = millis();
+  unsigned int TimeSample = CurrentTime - PreviousTime;
+
+  if (TimeSample >= dT) //dT est une constante de temps systeme definit plus haut
+  {
+
+    int encodeur_0 = ENCODER_Read(0);
+    int encodeur_1 = ENCODER_Read(1);
+    Erreur = encodeur_0 - encodeur_1;
+    //Serial.println(Erreur);
+    pid = (Erreur * Kp) + ((Erreur * Ki) / sec) + TargetSpeed;
+    //Serial.println(pid);
+    PreviousTime = CurrentTime;
+    MOTOR_SetSpeed(1, pid);
+  }
+  return PreviousTime;
 }
 
 void Gauche(int32_t AngleG)
 {
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
+  AngleG = -AngleG;
   MOTOR_SetSpeed(0, 0);
   MOTOR_SetSpeed(1, 0.5);
   uint32_t dm = ((120 * AngleG) / 360);
@@ -33,6 +69,8 @@ void Gauche(int32_t AngleG)
 }
 void Droite(int32_t AngleD)
 {
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
   MOTOR_SetSpeed(0, 0.5);
   MOTOR_SetSpeed(1, 0);
   uint32_t dm = ((120 * AngleD) / 360);
@@ -56,33 +94,32 @@ void Droite(int32_t AngleD)
 
 void Avancer(int32_t DistanceA)
 {
-  float speed0 = 0.5;
-  float speed1 = 0.5;
-  MOTOR_SetSpeed(0, speed0);
-  MOTOR_SetSpeed(1, speed1);
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
+  float PreviousTime = 0;
+  float speed0 = 0;
+  float speed1 = 0.35;
+  DistanceA = DistanceA*3200L/24;
+
+  /*for(float i = 0; i < speed0; i += 0.01){
+        delay(5);
+        MOTOR_SetSpeed(0, i);
+        MOTOR_SetSpeed(1, i);
+       }*/
+
   bool i = true;
-  int timer = 0;
+
   while (i)
   {
-    timer++;
-    if (timer % 500 == 0)
+    if (speed0 <= speed1)
     {
-      if (speed0 < .70 || speed1 < .7)
-      {
-        speed0 -= .2;
-        speed1 -= .2;
-      }
-      if (ENCODER_Read(0) < ENCODER_Read(1))
-      {
-        speed0 = (ENCODER_Read(1) * speed0) / ENCODER_Read(0);
-        MOTOR_SetSpeed(0, speed0);
-      }
-      if (ENCODER_Read(1) < ENCODER_Read(0))
-      {
-        speed1 = (ENCODER_Read(0) * speed1) / ENCODER_Read(1);
-        MOTOR_SetSpeed(1, speed1);
-      }
+      speed0 += .01;
+      delay(5);
+      MOTOR_SetSpeed(0, speed0);
+      MOTOR_SetSpeed(1, speed0);
     }
+
+    PreviousTime = PID(PreviousTime, speed0);
     if ((ENCODER_Read(0) >= DistanceA) && (ENCODER_Read(1) >= DistanceA))
     {
       MOTOR_SetSpeed(0, 0);
@@ -114,6 +151,8 @@ void Reculer(int32_t DistanceR)
 
 void uTurn(void)
 {
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
   MOTOR_SetSpeed(0, .3);
   MOTOR_SetSpeed(1, -.3);
   bool i = true;
@@ -138,47 +177,55 @@ void uTurn(void)
   }
 }
 
+void Arreter(void)
+{
+  MOTOR_SetSpeed(0, 0);
+  MOTOR_SetSpeed(1, 0);
+}
+
 void Sequence()
 {
   int32_t mouvements[9 /* Nombre de mouvements */][2] = {
-      {1000, 90},
-      {1000, 0},
-      {-1000, -90},
-      {500, -45},
-      {500, 135},
-      {500, -45},
-      {-500, -45},
-      {0, 0},
-      {0, 0}};
+      {220, -90},
+      {25, 90},
+      {30, 90},
+      {40, -90},
+      {10, 45},
+      {30, -85},
+      {55, 45},
+      {10, 15},
+      {120, 0}};
 
-  for (int i = 0; i < sizeof(mouvements); i++)
+  for (int i = 0; i < 9; i++)
   {
 
     // Valeur de déplacement à la position i
-    if (mouvements[i, 0] != 0)
+    if (mouvements[i][0] != 0)
     {
 
-      if (mouvements[i, 0] < 0)
+      if (mouvements[i][0] < 0)
       {
-        Reculer((int32_t)mouvements[i, 0]);
+        Reculer((int32_t)mouvements[i][0]);
       }
       else
       {
-        Avancer((int32_t)mouvements[i, 0]);
+        Avancer((int32_t)mouvements[i][0]);
       }
+      delay(50);
     }
     // Valeur de rotation à la position i
-    if (mouvements[i, 1] != 0)
+    if (mouvements[i][1] != 0)
     {
 
-      if (mouvements[i, 1] < 0)
+      if (mouvements[i][1] < 0)
       {
-        Gauche((int32_t)mouvements[i, 1]);
+        Gauche((int32_t)mouvements[i][1]);
       }
       else
       {
-        Droite((int32_t)mouvements[i, 1]);
+        Droite((int32_t)mouvements[i][1]);
       }
+      delay(50);
     }
   }
 }
@@ -187,4 +234,22 @@ void loop()
 {
   Sequence();
   uTurn();
+  while(1)
+  {
+    Arreter();
+  }
+      /*while (1)
+  {
+    Avancer(100);
+    delay(2000);
+    Reculer(-3200);
+    delay(40);
+    Gauche(-90);
+    delay(40);
+    Droite(180);
+    delay(40);
+    uTurn();
+    delay(40);
+    
+  }*/
 }
