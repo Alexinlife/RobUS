@@ -94,14 +94,10 @@ void Avancer(int32_t DistanceA)
   ENCODER_Reset(1);
   float PreviousTime = 0;
   float speed0 = 0;
-  float speed1 = 0.35;
+  float speed1 = 0.4;   // Fonctionne bien a 0.35
   DistanceA = DistanceA * 3200L / 24;
 
-  /*for(float i = 0; i < speed0; i += 0.01){
-        delay(5);
-        MOTOR_SetSpeed(0, i);
-        MOTOR_SetSpeed(1, i);
-       }*/
+
 
   bool i = true;
 
@@ -110,7 +106,7 @@ void Avancer(int32_t DistanceA)
     if (speed0 <= speed1)
     {
       speed0 += .01;
-      delay(5);
+      delay(5);    //  Fonctionne bien a 5ms
       MOTOR_SetSpeed(0, speed0);
       MOTOR_SetSpeed(1, speed0);
     }
@@ -237,39 +233,26 @@ void loop()
       {10, 45},
       {30, -85},
       {55, 45},
-      {10, 15},
+      {20, 15},
       {120, 0}};
 
   int32_t inverse[9 /* Nombre de mouvements */][2] = {
-      {120, 0},
-      {10, -15},
-      {55, -45},
-      {30, 85},
+      {120, -15},
       {10, -45},
-      {40, 90},
+      {55, 85},
+      {30, -45},
+      {10, 90},
+      {40, -90},
       {30, -90},
-      {25, -90},
-      {220, 90}};
+      {25, 90},
+      {220, 0}};
 
-  Sequence(mouvements);
-  uTurn();
+  //Sequence(mouvements);
+  //uTurn();
   Sequence(inverse);
+  //uTurn();
   while (1)
-  {
+  { 
     Arreter();
   }
-  /*while (1)
-  {
-    Avancer(100);
-    delay(2000);
-    Reculer(-3200);
-    delay(40);
-    Gauche(-90);
-    delay(40);
-    Droite(180);
-    delay(40);
-    uTurn();
-    delay(40);
-    
-  }*/
 }
