@@ -7,10 +7,6 @@ void setup()
   BoardInit();
 }
 
-void InverserTableau()
-{
-}
-
 /*
 ==========================
 Boucle de controle PID
@@ -99,7 +95,7 @@ void Avancer(int32_t DistanceA)
   float PreviousTime = 0;
   float speed0 = 0;
   float speed1 = 0.35;
-  DistanceA = DistanceA*3200L/24;
+  DistanceA = DistanceA * 3200L / 24;
 
   /*for(float i = 0; i < speed0; i += 0.01){
         delay(5);
@@ -183,18 +179,19 @@ void Arreter(void)
   MOTOR_SetSpeed(1, 0);
 }
 
-void Sequence()
+/*int32_t * InverserTableau(int32_t * mouvements)
 {
-  int32_t mouvements[9 /* Nombre de mouvements */][2] = {
-      {220, -90},
-      {25, 90},
-      {30, 90},
-      {40, -90},
-      {10, 45},
-      {30, -85},
-      {55, 45},
-      {10, 15},
-      {120, 0}};
+  int32_t * inverse[9][2];
+
+  for (int i = 0; i < 9; i++) {
+    inverse[i][0] = mouvements[8-i][0];
+    inverse[i][1] = -mouvements[8-i][1];
+  }
+  return inverse;
+}*/
+
+void Sequence(int32_t mouvements[9][2])
+{
 
   for (int i = 0; i < 9; i++)
   {
@@ -232,13 +229,36 @@ void Sequence()
 
 void loop()
 {
-  Sequence();
+  int32_t mouvements[9 /* Nombre de mouvements */][2] = {
+      {220, -90},
+      {25, 90},
+      {30, 90},
+      {40, -90},
+      {10, 45},
+      {30, -85},
+      {55, 45},
+      {10, 15},
+      {120, 0}};
+
+  int32_t inverse[9 /* Nombre de mouvements */][2] = {
+      {120, 0},
+      {10, -15},
+      {55, -45},
+      {30, 85},
+      {10, -45},
+      {40, 90},
+      {30, -90},
+      {25, -90},
+      {220, 90},};
+
+  Sequence(mouvements);
   uTurn();
-  while(1)
+  Sequence(inverse);
+  while (1)
   {
     Arreter();
   }
-      /*while (1)
+  /*while (1)
   {
     Avancer(100);
     delay(2000);
