@@ -100,7 +100,6 @@ void Avancer(int32_t DistanceA)
       speedMax = speed0;
       delay(15);    //  Fonctionne bien a 5ms
       MOTOR_SetSpeed(0, speed0);
-      //MOTOR_SetSpeed(1, speed0);
     }
     PreviousTime = PID(PreviousTime, speed0);
     if ((ENCODER_Read(0) >= distance) && (ENCODER_Read(1) >= distance))
