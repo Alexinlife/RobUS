@@ -3,15 +3,9 @@
 
 void setup()
 {
-  Serial.begin(9600);
   BoardInit();
 }
 
-/*
-==========================
-Boucle de controle PID
-==========================
-*/
 long PID(long PreviousTime, float TargetSpeed)
 {
   float pid = 0;
@@ -19,19 +13,17 @@ long PID(long PreviousTime, float TargetSpeed)
   float Ki = 1;
   float Erreur = 0;
   float sec = 7000;
-  unsigned int dT = 100;
+  unsigned int CT = 100;
   long CurrentTime = millis();
   unsigned int TimeSample = CurrentTime - PreviousTime;
 
-  if (TimeSample >= dT) //dT est une constante de temps systeme definit plus haut
+  if (TimeSample >= CT) //CT est une constante de temps systeme definit plus haut
   {
 
     int encodeur_0 = ENCODER_Read(0);
     int encodeur_1 = ENCODER_Read(1);
     Erreur = encodeur_0 - encodeur_1;
-    //Serial.println(Erreur);
     pid = (Erreur * Kp) + ((Erreur * Ki) / sec) + TargetSpeed;
-    //Serial.println(pid);
     PreviousTime = CurrentTime;
     MOTOR_SetSpeed(1, pid);
   }
@@ -44,11 +36,9 @@ void Gauche(int32_t AngleG)
   ENCODER_Reset(1);
   AngleG = -AngleG;
   MOTOR_SetSpeed(0, 0);
-  MOTOR_SetSpeed(1, 0.5);
+  MOTOR_SetSpeed(1, 0.4);
   uint32_t dm = ((120 * AngleG) / 360);
-  Serial.print(dm, DEC);
-  long int cycle = (3200L * dm) / 24;
-  Serial.print(cycle, DEC);
+  float cycle = (3200L * dm) / 23.9389;
 
   bool i = true;
   while (i)
@@ -67,12 +57,10 @@ void Droite(int32_t AngleD)
 {
   ENCODER_Reset(0);
   ENCODER_Reset(1);
-  MOTOR_SetSpeed(0, 0.5);
+  MOTOR_SetSpeed(0, 0.4);
   MOTOR_SetSpeed(1, 0);
   uint32_t dm = ((120 * AngleD) / 360);
-  Serial.print(dm, DEC);
-  long int cycle = (3200L * dm) / 24;
-  Serial.print(cycle, DEC);
+  float cycle = (3200L * dm) / 23.9389;
 
   bool i = true;
   while (i)
@@ -94,31 +82,42 @@ void Avancer(int32_t DistanceA)
   ENCODER_Reset(1);
   float PreviousTime = 0;
   float speed0 = 0;
-  float speed1 = 0.4;   // Fonctionne bien a 0.35
-  DistanceA = DistanceA * 3200L / 24;
+  float speed1 = 0.65;   // Fonctionne bien a 0.35
+  float distance = DistanceA * 3200L / 24;
 
-
+  float speedMin = .2;
+  float speedMax = 0;
+  float a = 0;
+  float b = 0;
 
   bool i = true;
 
   while (i)
   {
-    if (speed0 <= speed1)
+    if ((speed0 <= speed1) && ((ENCODER_Read(0)/distance) <= .4))
     {
       speed0 += .01;
-      delay(5);    //  Fonctionne bien a 5ms
+      speedMax = speed0;
+      delay(15);    //  Fonctionne bien a 5ms
       MOTOR_SetSpeed(0, speed0);
-      MOTOR_SetSpeed(1, speed0);
+      //MOTOR_SetSpeed(1, speed0);
     }
-
     PreviousTime = PID(PreviousTime, speed0);
-    if ((ENCODER_Read(0) >= DistanceA) && (ENCODER_Read(1) >= DistanceA))
+    if ((ENCODER_Read(0) >= distance) && (ENCODER_Read(1) >= distance))
     {
       MOTOR_SetSpeed(0, 0);
       MOTOR_SetSpeed(1, 0);
       ENCODER_Reset(0);
       ENCODER_Reset(1);
       i = false;
+    }
+    if(((ENCODER_Read(0)/distance) >=.6) && ((ENCODER_Read(1)/distance) >=.6))
+    {
+      a = (speedMin - speedMax)/(1-.6);
+      b = speedMin - (a*1);
+
+      speed0 = (a*(ENCODER_Read(0)/distance)+b);
+      MOTOR_SetSpeed(0, speed0);      
     }
   }
 }
@@ -152,12 +151,12 @@ void uTurn(void)
   int F1 = 0;
   while (i)
   {
-    if (ENCODER_Read(0) >= 3985)
+    if (ENCODER_Read(0) >= 3990)
     {
       MOTOR_SetSpeed(0, 0);
       F0 = 1;
     }
-    if (ENCODER_Read(1) <= -3985)
+    if (ENCODER_Read(1) <= -3990)
     {
       MOTOR_SetSpeed(1, 0);
       F1 = 1;
@@ -175,16 +174,6 @@ void Arreter(void)
   MOTOR_SetSpeed(1, 0);
 }
 
-/*int32_t * InverserTableau(int32_t * mouvements)
-{
-  int32_t * inverse[9][2];
-
-  for (int i = 0; i < 9; i++) {
-    inverse[i][0] = mouvements[8-i][0];
-    inverse[i][1] = -mouvements[8-i][1];
-  }
-  return inverse;
-}*/
 
 void Sequence(int32_t mouvements[9][2])
 {
@@ -220,31 +209,33 @@ void Sequence(int32_t mouvements[9][2])
       }
       delay(50);
     }
+      delay(100);
+
   }
 }
 
 void loop()
 {
   int32_t mouvements[9 /* Nombre de mouvements */][2] = {
-      {220, -90},
-      {25, 90},
+      {215, -90},
       {30, 90},
-      {40, -90},
-      {10, 45},
-      {30, -85},
-      {55, 45},
+      {30, 90},
+      {45, -90},
+      {20, 45},
+      {25, -85},
+      {50, 45},
       {50, 15},
-      {90, 0}};
+      {80, 0}};
 
   int32_t inverse[9 /* Nombre de mouvements */][2] = {
-      {110, -15},
-      {30, -40},
-      {55, 85},
-      {40, -45},
-      {15, 95},
-      {30, -90},
-      {20, -80},
-      {35, 90},
+      {80, -15},
+      {50, -45},
+      {50, 85},
+      {25, -45},
+      {20, 90},
+      {35, -90},
+      {25, -85},
+      {30, 95},
       {240, 0}};
 
   Sequence(mouvements);
