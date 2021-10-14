@@ -61,7 +61,6 @@ void Droite(int32_t AngleD)
   MOTOR_SetSpeed(1, 0);
   uint32_t dm = ((120 * AngleD) / 360);
   float cycle = (3200L * dm) / 23.9389;
-
   bool i = true;
   while (i)
   {
@@ -82,7 +81,7 @@ void Avancer(int32_t DistanceA)
   ENCODER_Reset(1);
   float PreviousTime = 0;
   float speed0 = 0;
-  float speed1 = 0.65;   // Fonctionne bien a 0.35
+  float speed1 = 0.95;   // Fonctionne bien a 0.95 robot prodige
   float distance = DistanceA * 3200L / 24;
 
   float speedMin = .2;
@@ -143,19 +142,19 @@ void uTurn(void)
 {
   ENCODER_Reset(0);
   ENCODER_Reset(1);
-  MOTOR_SetSpeed(0, .3);
-  MOTOR_SetSpeed(1, -.3);
+  MOTOR_SetSpeed(0, -.3);
+  MOTOR_SetSpeed(1, .3);
   bool i = true;
   int F0 = 0;
   int F1 = 0;
   while (i)
   {
-    if (ENCODER_Read(0) >= 3990)
+    if (ENCODER_Read(0) <= -3800)
     {
       MOTOR_SetSpeed(0, 0);
       F0 = 1;
     }
-    if (ENCODER_Read(1) <= -3990)
+    if (ENCODER_Read(1) >= 4010)
     {
       MOTOR_SetSpeed(1, 0);
       F1 = 1;
@@ -230,17 +229,18 @@ void loop()
       {80, -15},
       {50, -45},
       {50, 85},
-      {25, -45},
+      {25, -40},
       {20, 90},
       {35, -90},
       {25, -85},
-      {30, 95},
+      {30, 90},
       {240, 0}};
 
   Sequence(mouvements);
   uTurn();
   Sequence(inverse);
-  //uTurn();
+  uTurn();
+  //Droite(180);
   while (1)
   { 
     Arreter();
