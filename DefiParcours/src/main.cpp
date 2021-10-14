@@ -13,7 +13,7 @@ long PID(long PreviousTime, float TargetSpeed)
   float Ki = 1;
   float Erreur = 0;
   float sec = 7000;
-  unsigned int CT = 100;
+  unsigned int CT = 50;
   long CurrentTime = millis();
   unsigned int TimeSample = CurrentTime - PreviousTime;
 
@@ -81,7 +81,7 @@ void Avancer(int32_t DistanceA)
   ENCODER_Reset(1);
   float PreviousTime = 0;
   float speed0 = 0;
-  float speed1 = 0.95;   // Fonctionne bien a 0.95 robot prodige
+  float speed1 = 0.85;   // Fonctionne bien a 0.95 robot prodige
   float distance = DistanceA * 3200L / 24;
 
   float speedMin = .2;
@@ -97,7 +97,7 @@ void Avancer(int32_t DistanceA)
     {
       speed0 += .01;
       speedMax = speed0;
-      delay(15);    //  Fonctionne bien a 5ms
+      delay(10);    //  Fonctionne bien a 5ms
       MOTOR_SetSpeed(0, speed0);
     }
     PreviousTime = PID(PreviousTime, speed0);
@@ -238,8 +238,10 @@ void loop()
 
   Sequence(mouvements);
   uTurn();
-  Sequence(inverse);
-  uTurn();
+  Sequence(mouvements);
+
+  //Sequence(inverse);
+  //uTurn();
   //Droite(180);
   while (1)
   { 

@@ -13,7 +13,7 @@ long PID(long PreviousTime, float TargetSpeed)
   float Ki = 1;
   float Erreur = 0;
   float sec = 7000;
-  unsigned int CT = 100;
+  unsigned int CT = 50;
   long CurrentTime = millis();
   unsigned int TimeSample = CurrentTime - PreviousTime;
 
@@ -149,12 +149,12 @@ void uTurn(void)
   int F1 = 0;
   while (i)
   {
-    if (ENCODER_Read(0) <= -3800)
+    if (ENCODER_Read(0) <= -3950)
     {
       MOTOR_SetSpeed(0, 0);
       F0 = 1;
     }
-    if (ENCODER_Read(1) >= 4010)
+    if (ENCODER_Read(1) >= 3750)
     {
       MOTOR_SetSpeed(1, 0);
       F1 = 1;
